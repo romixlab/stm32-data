@@ -53,10 +53,13 @@ impl Registers {
 
     pub fn write(&self) -> Result<(), anyhow::Error> {
         std::fs::create_dir_all("build/data/registers")?;
+        std::fs::create_dir_all("build/data/registers_bincode")?;
 
         for (name, ir) in &self.registers {
             let dump = serde_json::to_string_pretty(ir)?;
             std::fs::write(format!("build/data/registers/{name}.json"), dump)?;
+            let dump = bincode::encode_to_vec(ir, bincode::config::standard())?;
+            std::fs::write(format!("build/data/registers_bincode/{name}.json"), dump)?;
         }
         Ok(())
     }
