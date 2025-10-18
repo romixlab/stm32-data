@@ -1,3 +1,4 @@
+use bincode::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 
 #[macro_export]
@@ -14,7 +15,7 @@ fn is_default<T: Default + PartialEq>(variant: &T) -> bool {
     *variant == T::default()
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize, Encode, Decode)]
 pub struct Chip {
     pub name: String,
     pub family: String,
@@ -28,22 +29,23 @@ pub struct Chip {
 }
 
 pub mod chip {
+    use bincode::{Decode, Encode};
     use serde::{Deserialize, Serialize};
 
-    #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+    #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
     pub struct Package {
         pub name: String,
         pub package: String,
         pub pins: Vec<PackagePin>,
     }
 
-    #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+    #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
     pub struct PackagePin {
         pub position: String,
         pub signals: Vec<String>,
     }
 
-    #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+    #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
     pub struct Memory {
         pub name: String,
         pub kind: memory::Kind,
@@ -57,9 +59,10 @@ pub mod chip {
     }
 
     pub mod memory {
+        use bincode::{Decode, Encode};
         use serde::{Deserialize, Serialize};
 
-        #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+        #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
         #[serde(rename_all = "lowercase")]
         pub enum Kind {
             Flash,
@@ -67,14 +70,14 @@ pub mod chip {
             Eeprom,
         }
 
-        #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+        #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
         pub struct Settings {
             pub erase_size: u32,
             pub write_size: u32,
             pub erase_value: u8,
         }
 
-        #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+        #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
         pub struct Access {
             pub read: bool,
             pub write: bool,
@@ -82,7 +85,7 @@ pub mod chip {
         }
     }
 
-    #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+    #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
     pub struct Doc {
         pub r#type: String,
         pub title: String,
@@ -90,21 +93,22 @@ pub mod chip {
         pub url: String,
     }
 
-    #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+    #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize, Encode, Decode)]
     pub struct Core {
         pub name: String,
-        pub peripherals: Vec<core::Peripheral>,
+        pub peripherals: Vec<core_stm32::Peripheral>,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub nvic_priority_bits: Option<u8>,
-        pub interrupts: Vec<core::Interrupt>,
-        pub dma_channels: Vec<core::DmaChannels>,
-        pub pins: Vec<core::Pin>,
+        pub interrupts: Vec<core_stm32::Interrupt>,
+        pub dma_channels: Vec<core_stm32::DmaChannels>,
+        pub pins: Vec<core_stm32::Pin>,
     }
 
-    pub mod core {
+    pub mod core_stm32 {
+        use bincode::{Decode, Encode};
         use serde::{Deserialize, Serialize};
 
-        #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+        #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize, Encode, Decode)]
         pub struct Peripheral {
             pub name: String,
             #[serde(default)]
@@ -124,16 +128,17 @@ pub mod chip {
         }
 
         pub mod peripheral {
+            use bincode::{Decode, Encode};
             use serde::{Deserialize, Serialize};
 
-            #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+            #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
             pub struct Registers {
                 pub kind: String,
                 pub version: String,
                 pub block: String,
             }
 
-            #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+            #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
             pub struct Rcc {
                 pub bus_clock: String,
                 pub kernel_clock: rcc::KernelClock,
@@ -145,22 +150,23 @@ pub mod chip {
             }
 
             pub mod rcc {
+                use bincode::{Decode, Encode};
                 use serde::{Deserialize, Serialize};
 
-                #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+                #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
                 pub struct Field {
                     pub register: String,
                     pub field: String,
                 }
 
-                #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+                #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
                 #[serde(untagged)]
                 pub enum KernelClock {
                     Clock(String),
                     Mux(Field),
                 }
 
-                #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Default)]
+                #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Default, Encode, Decode)]
                 /// Specifies a limit for the stop mode of the peripheral.
                 /// E.g. if `StopMode::Stop1` is selected, the peripheral prevents the chip from entering Stop1 mode.
                 pub enum StopMode {
@@ -174,7 +180,7 @@ pub mod chip {
                 }
             }
 
-            #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+            #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize, Encode, Decode)]
             pub struct Pin {
                 pub pin: String,
                 pub signal: String,
@@ -182,13 +188,13 @@ pub mod chip {
                 pub af: Option<u8>,
             }
 
-            #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+            #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
             pub struct Interrupt {
                 pub signal: String,
                 pub interrupt: String,
             }
 
-            #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+            #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
             pub struct DmaChannel {
                 pub signal: String,
                 #[serde(skip_serializing_if = "Option::is_none")]
@@ -203,14 +209,14 @@ pub mod chip {
                 pub request: Option<u8>,
             }
 
-            #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+            #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
             pub struct RemapInfo {
                 pub register: String,
                 pub field: String,
                 pub value: u8,
             }
 
-            #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+            #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
             pub struct Afio {
                 pub register: String,
                 pub field: String,
@@ -218,7 +224,7 @@ pub mod chip {
                 pub values: Vec<AfioValue>,
             }
 
-            #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+            #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
             pub struct AfioValue {
                 pub value: u8,
                 #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -226,18 +232,18 @@ pub mod chip {
             }
         }
 
-        #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+        #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
         pub struct Interrupt {
             pub name: String,
             pub number: u8,
         }
 
-        #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+        #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
         pub struct Pin {
             pub name: String,
         }
 
-        #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+        #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize, Encode, Decode)]
         pub struct DmaChannels {
             pub name: String,
             pub dma: String,

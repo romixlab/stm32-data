@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::Context;
-use stm32_data_serde::chip::core::peripheral::RemapInfo;
+use stm32_data_serde::chip::core_stm32::peripheral::RemapInfo;
 
 use crate::normalize_peris::normalize_peri_name;
 
@@ -75,8 +75,8 @@ mod xml {
 
 #[derive(Debug, PartialEq)]
 pub struct ChipDma {
-    pub peripherals: HashMap<String, Vec<stm32_data_serde::chip::core::peripheral::DmaChannel>>,
-    pub channels: Vec<stm32_data_serde::chip::core::DmaChannels>,
+    pub peripherals: HashMap<String, Vec<stm32_data_serde::chip::core_stm32::peripheral::DmaChannel>>,
+    pub channels: Vec<stm32_data_serde::chip::core_stm32::DmaChannels>,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -401,7 +401,7 @@ impl DmaChannels {
                                     .peripherals
                                     .entry(normalize_peri_name(target_peri_name).to_string())
                                     .or_default()
-                                    .push(stm32_data_serde::chip::core::peripheral::DmaChannel {
+                                    .push(stm32_data_serde::chip::core_stm32::peripheral::DmaChannel {
                                         signal: request.to_string(),
                                         channel: None,
                                         dmamux: Some(req_dmamux.to_string()),
@@ -421,7 +421,7 @@ impl DmaChannels {
                             let low: u8 = result.get(2).unwrap().as_str().parse()?;
                             let high: u8 = result.get(3).unwrap().as_str().parse()?;
                             for i in low..=high {
-                                chip_dma.channels.push(stm32_data_serde::chip::core::DmaChannels {
+                                chip_dma.channels.push(stm32_data_serde::chip::core_stm32::DmaChannels {
                                     name: format!("{n}_CH{i}"),
                                     dma: n.to_string(),
                                     // Make sure all channels numbers start at 0
@@ -475,7 +475,7 @@ impl DmaChannels {
                             .unwrap();
 
                         channel_names.push(channel_name.parse().unwrap());
-                        chip_dma.channels.push(stm32_data_serde::chip::core::DmaChannels {
+                        chip_dma.channels.push(stm32_data_serde::chip::core_stm32::DmaChannels {
                             name: format!("{dma_peri_name}_CH{channel_name}"),
                             dma: dma_peri_name.clone(),
                             channel: channel_name.parse().unwrap(),
@@ -520,7 +520,7 @@ impl DmaChannels {
                                         channel_name.parse().unwrap(),
                                     );
 
-                                    let entry = stm32_data_serde::chip::core::peripheral::DmaChannel {
+                                    let entry = stm32_data_serde::chip::core_stm32::peripheral::DmaChannel {
                                         signal: request.to_string(),
                                         channel: Some(format!("{dma_peri_name}_CH{channel_name}")),
                                         dmamux: None,
@@ -585,7 +585,7 @@ impl DmaChannels {
                     .peripherals
                     .entry(normalize_peri_name(target_peri_name).to_string())
                     .or_default()
-                    .push(stm32_data_serde::chip::core::peripheral::DmaChannel {
+                    .push(stm32_data_serde::chip::core_stm32::peripheral::DmaChannel {
                         signal: request.to_string(),
                         dma: Some(instance.to_string()),
                         channel: None,
@@ -596,7 +596,7 @@ impl DmaChannels {
             }
 
             for i in 0..count {
-                chip_dma.channels.push(stm32_data_serde::chip::core::DmaChannels {
+                chip_dma.channels.push(stm32_data_serde::chip::core_stm32::DmaChannels {
                     name: format!("{instance}_CH{i}"),
                     dma: instance.to_string(),
                     channel: i,

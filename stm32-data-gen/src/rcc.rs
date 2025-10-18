@@ -2,8 +2,8 @@ use std::collections::{HashMap, HashSet};
 
 use anyhow::{anyhow, bail, Ok};
 use chiptool::ir::IR;
-use stm32_data_serde::chip::core::peripheral::rcc::{Field, StopMode};
-use stm32_data_serde::chip::core::peripheral::{self, rcc};
+use stm32_data_serde::chip::core_stm32::peripheral::rcc::{Field, StopMode};
+use stm32_data_serde::chip::core_stm32::peripheral::{self, rcc};
 
 use crate::regex;
 use crate::registers::Registers;
@@ -292,7 +292,7 @@ impl ParsedRccs {
         &self,
         rcc_version: &str,
         peri_name: &str,
-    ) -> Option<stm32_data_serde::chip::core::peripheral::Rcc> {
+    ) -> Option<stm32_data_serde::chip::core_stm32::peripheral::Rcc> {
         const FALLBACKS: &[(&str, &[&str])] = &[
             ("DCMI", &["DCMI_PSSI"]),
             ("PSSI", &["DCMI_PSSI"]),

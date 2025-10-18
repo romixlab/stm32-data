@@ -4,7 +4,7 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 use gpio_af::pin_sort_key;
 use perimap::PERIMAP;
 use regex::Regex;
-use stm32_data_serde::chip::core::peripheral::Pin;
+use stm32_data_serde::chip::core_stm32::peripheral::Pin;
 use util::RegexMap;
 
 use super::*;
@@ -24,6 +24,7 @@ pub fn dump_all_chips(
     docs: docs::Docs,
 ) -> Result<(), anyhow::Error> {
     std::fs::create_dir_all("build/data/chips")?;
+    std::fs::create_dir_all("build/data/chips_bincode")?;
 
     #[cfg(feature = "rayon")]
     {
@@ -118,7 +119,7 @@ fn process_core(
     chip_interrupts: &interrupts::ChipInterrupts,
     peripheral_to_clock: &rcc::ParsedRccs,
     rcc_block: (&str, &str, &str),
-    chip_af: Option<&HashMap<String, Vec<stm32_data_serde::chip::core::peripheral::Pin>>>,
+    chip_af: Option<&HashMap<String, Vec<stm32_data_serde::chip::core_stm32::peripheral::Pin>>>,
     dma_channels: &dma::DmaChannels,
 ) -> anyhow::Result<stm32_data_serde::chip::Core> {
     let core_name = create_short_core_name(long_core_name);
@@ -149,7 +150,7 @@ fn process_core(
         .map(|x| x.replace("_C", ""))
         .collect::<BTreeSet<_>>()
         .into_iter()
-        .map(|name| stm32_data_serde::chip::core::Pin { name })
+        .map(|name| stm32_data_serde::chip::core_stm32::Pin { name })
         .collect();
 
     pins.sort_by_key(|p| pin_sort_key(&p.name));
@@ -185,7 +186,7 @@ fn create_peripherals_for_chip(
     rcc_block: (&str, &str, &str),
     chip_af: Option<&HashMap<String, Vec<Pin>>>,
     defines: &header::Defines,
-) -> HashMap<String, stm32_data_serde::chip::core::Peripheral> {
+) -> HashMap<String, stm32_data_serde::chip::core_stm32::Peripheral> {
     let peri_kinds = create_peripheral_map(chip_name, group, defines);
     let periph_pins = extract_pins_from_chip_group(group);
     let mut peripherals = HashMap::new();
@@ -200,7 +201,7 @@ fn create_peripherals_for_chip(
 
         let perimap = PERIMAP.get(&format!("{chip_name}:{pname}:{pkind}"));
         let registers = if let Some(&block) = perimap {
-            Some(stm32_data_serde::chip::core::peripheral::Registers {
+            Some(stm32_data_serde::chip::core_stm32::peripheral::Registers {
                 kind: block.0.to_string(),
                 version: block.1.to_string(),
                 block: block.2.to_string(),
@@ -230,7 +231,7 @@ fn create_peripherals_for_chip(
 
             macro_rules! afio {
                 ($value:expr, $($pins:expr),+) => {
-                    stm32_data_serde::chip::core::peripheral::AfioValue {
+                    stm32_data_serde::chip::core_stm32::peripheral::AfioValue {
                         value: $value,
                         pins: vec![$($pins.to_string()),+],
                     }
@@ -325,13 +326,13 @@ fn create_peripherals_for_chip(
 
             let field = format!("{peripheral}_REMAP");
             if afio_mapr.len() > 0 {
-                Some(stm32_data_serde::chip::core::peripheral::Afio {
+                Some(stm32_data_serde::chip::core_stm32::peripheral::Afio {
                     register: "MAPR".to_string(),
                     field,
                     values: afio_mapr,
                 })
             } else if afio_mapr2.len() > 0 {
-                Some(stm32_data_serde::chip::core::peripheral::Afio {
+                Some(stm32_data_serde::chip::core_stm32::peripheral::Afio {
                     register: "MAPR2".to_string(),
                     field,
                     values: afio_mapr2,
@@ -343,7 +344,7 @@ fn create_peripherals_for_chip(
             None
         };
 
-        let p = stm32_data_serde::chip::core::Peripheral {
+        let p = stm32_data_serde::chip::core_stm32::Peripheral {
             name: pname.clone(),
             address,
             registers,
@@ -542,7 +543,7 @@ fn extract_pins_from_chip_group(group: &ChipGroup) -> HashMap<String, Vec<Pin>> 
                 continue;
             };
             periph_pins.entry(signal_peri.to_string()).or_default().push(
-                stm32_data_serde::chip::core::peripheral::Pin {
+                stm32_data_serde::chip::core_stm32::peripheral::Pin {
                     pin: pin_name.clone(),
                     signal: signal_name.to_string(),
                     af: None,
@@ -618,8 +619,8 @@ fn merge_i2s_into_spi_pins(
 fn merge_periph_pins_info(
     chip_name: &str,
     periph_name: &str,
-    core_pins: &mut [stm32_data_serde::chip::core::peripheral::Pin],
-    af_pins: &[stm32_data_serde::chip::core::peripheral::Pin],
+    core_pins: &mut [stm32_data_serde::chip::core_stm32::peripheral::Pin],
+    af_pins: &[stm32_data_serde::chip::core_stm32::peripheral::Pin],
 ) {
     // convert to hashmap
     let af_pins: HashMap<(&str, &str), Option<u8>> = af_pins
@@ -698,7 +699,7 @@ fn resolve_peri_addr(chip_name: &str, pname: &str, defines: &header::Defines) ->
 /// Parameters:
 /// - `group`: ChipGroup context (family/package) for filtering
 /// - `peripherals`: mutable map of peripheral name → `Peripheral` to modify
-fn apply_family_extras(group: &ChipGroup, peripherals: &mut HashMap<String, stm32_data_serde::chip::core::Peripheral>) {
+fn apply_family_extras(group: &ChipGroup, peripherals: &mut HashMap<String, stm32_data_serde::chip::core_stm32::Peripheral>) {
     if let Ok(extra_f) = std::fs::read(format!("data/extra/family/{}.yaml", group.family)) {
         #[derive(serde::Deserialize)]
         struct PinCleanup {
@@ -708,7 +709,7 @@ fn apply_family_extras(group: &ChipGroup, peripherals: &mut HashMap<String, stm3
 
         #[derive(serde::Deserialize)]
         struct Extra {
-            peripherals: Option<Vec<stm32_data_serde::chip::core::Peripheral>>,
+            peripherals: Option<Vec<stm32_data_serde::chip::core_stm32::Peripheral>>,
             pin_cleanup: Option<PinCleanup>,
             /// Maps an instance name of a peripheral to a list of pins.
             /// E.g., {"OPAMP1": [("PA0", "VINP0"), ...], "OPAMP2": [...], ...}
@@ -816,10 +817,10 @@ fn collect_dma_instances<'a>(
 /// It returns `Vec<DmaChannels>` with the valid DMA channel definitions that
 /// can actually be used on this specific device.
 fn extract_relevant_dma_channels(
-    peripherals: &Vec<stm32_data_serde::chip::core::Peripheral>,
+    peripherals: &Vec<stm32_data_serde::chip::core_stm32::Peripheral>,
     dmas: &Vec<(String, String, &dma::ChipDma)>,
     chip_name: &str,
-) -> Vec<stm32_data_serde::chip::core::DmaChannels> {
+) -> Vec<stm32_data_serde::chip::core_stm32::DmaChannels> {
     // The dma_channels[xx] is generic for multiple chips. The current chip may have less DMAs,
     // so we have to filter it.
     static DMA_CHANNEL_COUNTS: RegexMap<usize> = RegexMap::new(&[
@@ -850,9 +851,9 @@ fn extract_relevant_dma_channels(
 /// This determines which DMA channels can be used for data transfers for each peripheral.
 /// Modifies each `Peripheral` in-place, setting `peripheral.dma_channels`.
 fn associate_peripherals_dma_channels(
-    peripherals: &mut Vec<stm32_data_serde::chip::core::Peripheral>,
+    peripherals: &mut Vec<stm32_data_serde::chip::core_stm32::Peripheral>,
     dmas: Vec<(String, String, &dma::ChipDma)>,
-    dma_channels: &Vec<stm32_data_serde::chip::core::DmaChannels>,
+    dma_channels: &Vec<stm32_data_serde::chip::core_stm32::DmaChannels>,
 ) {
     let have_chs: HashSet<_> = dma_channels.iter().map(|ch| ch.name.clone()).collect();
 
@@ -903,5 +904,7 @@ fn process_chip(
 
     let dump = serde_json::to_string_pretty(&chip)?;
     std::fs::write(format!("build/data/chips/{chip_name}.json"), dump)?;
+    let dump = bincode::encode_to_vec(&chip, bincode::config::standard())?;
+    std::fs::write(format!("build/data/chips_bincode/{chip_name}.bincode"), dump)?;
     Ok(())
 }

@@ -45,7 +45,7 @@ pub fn clean_pin(pin_name: &str) -> Option<String> {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Af(pub HashMap<String, HashMap<String, Vec<stm32_data_serde::chip::core::peripheral::Pin>>>);
+pub struct Af(pub HashMap<String, HashMap<String, Vec<stm32_data_serde::chip::core_stm32::peripheral::Pin>>>);
 
 impl Af {
     pub fn parse() -> anyhow::Result<Self> {
@@ -82,7 +82,7 @@ impl Af {
                         Some(afn)
                     };
                     peris.entry(peri_name.to_string()).or_default().push(
-                        stm32_data_serde::chip::core::peripheral::Pin {
+                        stm32_data_serde::chip::core_stm32::peripheral::Pin {
                             pin: pin_name.clone(),
                             signal: signal_name.to_string(),
                             af: afn,

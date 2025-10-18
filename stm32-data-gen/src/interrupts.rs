@@ -97,7 +97,7 @@ impl ChipInterrupts {
         }
         core.interrupts = header_irqs
             .iter()
-            .map(|(k, v)| stm32_data_serde::chip::core::Interrupt {
+            .map(|(k, v)| stm32_data_serde::chip::core_stm32::Interrupt {
                 name: k.clone(),
                 number: *v,
             })
@@ -363,7 +363,7 @@ impl ChipInterrupts {
 
         for p in &mut core.peripherals {
             if let Some(signals) = chip_signals.get(&p.name) {
-                let mut all_irqs: Vec<stm32_data_serde::chip::core::peripheral::Interrupt> = Vec::new();
+                let mut all_irqs: Vec<stm32_data_serde::chip::core_stm32::peripheral::Interrupt> = Vec::new();
 
                 // remove duplicates
                 let globals = signals.get("GLOBAL").cloned().unwrap_or_default();
@@ -400,7 +400,7 @@ impl ChipInterrupts {
                     }
 
                     for irq in irqs {
-                        all_irqs.push(stm32_data_serde::chip::core::peripheral::Interrupt {
+                        all_irqs.push(stm32_data_serde::chip::core_stm32::peripheral::Interrupt {
                             signal: signal.clone(),
                             interrupt: irq,
                         })

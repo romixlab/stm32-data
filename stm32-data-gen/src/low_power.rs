@@ -1,4 +1,4 @@
-use stm32_data_serde::chip::core::peripheral::rcc::StopMode;
+use stm32_data_serde::chip::core_stm32::peripheral::rcc::StopMode;
 
 use crate::util::RegexMap;
 
