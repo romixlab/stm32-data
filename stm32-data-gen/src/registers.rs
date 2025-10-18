@@ -59,7 +59,7 @@ impl Registers {
             let dump = serde_json::to_string_pretty(ir)?;
             std::fs::write(format!("build/data/registers/{name}.json"), dump)?;
             let dump = bincode::encode_to_vec(ir, bincode::config::standard())?;
-            std::fs::write(format!("build/data/registers_bincode/{name}.json"), dump)?;
+            std::fs::write(format!("build/data/registers_bincode/{name}.bincode"), dump)?;
         }
         Ok(())
     }
