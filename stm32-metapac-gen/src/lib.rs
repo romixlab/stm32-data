@@ -22,14 +22,18 @@ pub struct Gen {
     opts: Options,
     all_peripheral_versions: HashSet<(String, String)>,
     metadata_dedup: HashMap<String, String>,
+    chip_filter: String,
+    module_filters: Vec<(String, String)>,
 }
 
 impl Gen {
-    pub fn new(opts: Options) -> Self {
+    pub fn new(opts: Options, chip_filter: String, module_filters: Vec<(String, String)>) -> Self {
         Self {
             opts,
             all_peripheral_versions: HashSet::new(),
             metadata_dedup: HashMap::new(),
+            chip_filter,
+            module_filters,
         }
     }
 
@@ -215,7 +219,11 @@ impl Gen {
         let mut chip_core_names: Vec<String> = Vec::new();
 
         for chip_name in &self.opts.chips.clone() {
-            println!("Generating {}...", chip_name);
+            if chip_name.contains(&self.chip_filter) {
+                println!("Generating {}...", chip_name);
+            } else {
+                println!("Skipping {}...", chip_name);
+            }
 
             let mut chip = self.load_chip(chip_name);
 
@@ -248,7 +256,12 @@ impl Gen {
         }
 
         for (module, version) in &self.all_peripheral_versions {
-            println!("loading {} {}", module, version);
+            if self.module_filters.contains(&(module.clone(), version.clone())) {
+                println!("loading {} {}", module, version);
+            } else {
+                println!("skipping {} {}", module, version);
+                continue;
+            }
 
             let regs_path = Path::new(&self.opts.data_dir)
                 .join("registers")

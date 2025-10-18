@@ -29,5 +29,18 @@ fn main() {
         data_dir,
         chips,
     };
-    Gen::new(opts).gen();
+    Gen::new(
+        opts,
+        "STM32H".into(),
+        vec![
+            ("can".into(), "fdcan_h7".into()),
+            ("can".into(), "fdcan_v1".into()),
+            ("fdcanram".into(), "v1".into()),
+            ("fdcanram".into(), "h7".into()),
+            ("rcc".into(), "h7".into()),
+            ("rcc".into(), "g4".into()),
+            ("rcc".into(), "g0".into()),
+        ],
+    )
+    .gen();
 }
